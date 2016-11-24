@@ -272,9 +272,7 @@ class Task {
 };
 
 
-#ifdef _TASK_PRIORITY
-		static Scheduler* iCurrentScheduler;
-#endif  // _TASK_PRIORITY
+extern Scheduler* iCurrentScheduler;
 
 class Scheduler {
 	friend class Task;

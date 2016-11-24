@@ -1,0 +1,2 @@
+class Scheduler;
+Scheduler* iCurrentScheduler;
