@@ -195,9 +195,9 @@ class Scheduler;
 class Task {
     friend class Scheduler;
     public:
-		Task(unsigned long aInterval=0, long aIterations=0, void (*aCallback)()=NULL, Scheduler* aScheduler=NULL, bool aEnable=false, bool (*aOnEnable)()=NULL, void (*aOnDisable)()=NULL);
+		Task(unsigned long aInterval=0, long aIterations=0, void (*aCallback)()=NULL, Scheduler* aScheduler=NULL, bool aEnable=false /*, bool (*aOnEnable)()=NULL, void (*aOnDisable)()=NULL*/);
 #ifdef _TASK_STATUS_REQUEST
-		Task(void (*aCallback)()=NULL, Scheduler* aScheduler=NULL, bool (*aOnEnable)()=NULL, void (*aOnDisable)()=NULL);
+		Task(void (*aCallback)()=NULL, Scheduler* aScheduler=NULL /*, bool (*aOnEnable)()=NULL, void (*aOnDisable)()=NULL*/);
 #endif  // _TASK_STATUS_REQUEST
 
 		void enable();
@@ -209,15 +209,15 @@ class Task {
 		void restartDelayed(unsigned long aDelay=0);
 		bool disable();
 		inline bool isEnabled() { return iStatus.enabled; }
-		void set(unsigned long aInterval, long aIterations, void (*aCallback)(),bool (*aOnEnable)()=NULL, void (*aOnDisable)()=NULL);
+		void set(unsigned long aInterval, long aIterations, void (*aCallback)()/*,bool (*aOnEnable)()=NULL, void (*aOnDisable)()=NULL*/);
 		void setInterval(unsigned long aInterval);
 		inline unsigned long getInterval() { return iInterval; }
 		void setIterations(long aIterations);
 		inline long getIterations() { return iIterations; }
 		inline unsigned long getRunCounter() { return iRunCounter; }
 		inline void setCallback(void (*aCallback)()) { iCallback = aCallback; }
-		inline void setOnEnable(bool (*aCallback)()) { iOnEnable = aCallback; }
-		inline void setOnDisable(void (*aCallback)()) { iOnDisable = aCallback; }
+		//inline void setOnEnable(bool (*aCallback)()) { iOnEnable = aCallback; }
+		//inline void setOnDisable(void (*aCallback)()) { iOnDisable = aCallback; }
 #ifdef _TASK_TIMECRITICAL
 		inline long getOverrun() { return iOverrun; }
 		inline long getStartDelay() { return iStartDelay; }
@@ -252,11 +252,11 @@ class Task {
 		volatile long			iStartDelay;		// actual execution of the task's callback method was delayed by this number of millis
 #endif  // _TASK_TIMECRITICAL
 		volatile long			iIterations;		// number of iterations left. 0 - last iteration. -1 - infinite iterations
-		long					iSetIterations; 		// number of iterations originally requested (for restarts)
-		unsigned long			iRunCounter;		// current number of iteration (starting with 1). Resets on enable. 
+		int					iSetIterations; 		// number of iterations originally requested (for restarts)
+		unsigned int			iRunCounter;		// current number of iteration (starting with 1). Resets on enable. 
 		void					(*iCallback)();		// pointer to the void callback method
-		bool					(*iOnEnable)();		// pointer to the bolol OnEnable callback method
-		void					(*iOnDisable)();	// pointer to the void OnDisable method
+		//bool					(*iOnEnable)();		// pointer to the bolol OnEnable callback method
+		//void					(*iOnDisable)();	// pointer to the void OnDisable method
 		Task					*iPrev, *iNext;		// pointers to the previous and next tasks in the chain
 		Scheduler				*iScheduler;		// pointer to the current scheduler
 #ifdef _TASK_STATUS_REQUEST
@@ -316,9 +316,9 @@ class Scheduler {
 /** Constructor, uses default values for the parameters
  * so could be called with no parameters.
  */
-inline Task::Task( unsigned long aInterval, long aIterations, void (*aCallback)(), Scheduler* aScheduler, bool aEnable, bool (*aOnEnable)(), void (*aOnDisable)() ) {
+inline Task::Task( unsigned long aInterval, long aIterations, void (*aCallback)(), Scheduler* aScheduler, bool aEnable /*, bool (*aOnEnable)(), void (*aOnDisable)() */) {
 	reset();
-	set(aInterval, aIterations, aCallback, aOnEnable, aOnDisable);
+	set(aInterval, aIterations, aCallback /*, aOnEnable, aOnDisable*/);
 	if (aScheduler) aScheduler->addTask(*this);
 #ifdef _TASK_STATUS_REQUEST
 	iStatusRequest = NULL;
@@ -335,9 +335,9 @@ inline Task::Task( unsigned long aInterval, long aIterations, void (*aCallback)(
 /** Constructor with reduced parameter list for tasks created for 
  *  StatusRequest only triggering (always immediate and only 1 iteration)
  */
-inline Task::Task( void (*aCallback)(), Scheduler* aScheduler, bool (*aOnEnable)(), void (*aOnDisable)() ) {
+inline Task::Task( void (*aCallback)(), Scheduler* aScheduler /*, bool (*aOnEnable)(), void (*aOnDisable)() */) {
 	reset();
-	set(TASK_IMMEDIATE, TASK_ONCE, aCallback, aOnEnable, aOnDisable);
+	set(TASK_IMMEDIATE, TASK_ONCE, aCallback /*, aOnEnable, aOnDisable*/);
 	if (aScheduler) aScheduler->addTask(*this);
 	iStatusRequest = NULL;
 #ifdef _TASK_WDT_IDS
@@ -423,12 +423,12 @@ inline void Task::reset() {
  * @param aOnEnable - pointer to the callback method which is called on enable()
  * @param aOnDisable - pointer to the callback method which is called on disable()
  */
-inline void Task::set(unsigned long aInterval, long aIterations, void (*aCallback)(),bool (*aOnEnable)(), void (*aOnDisable)()) {
+inline void Task::set(unsigned long aInterval, long aIterations, void (*aCallback)()/*,bool (*aOnEnable)(), void (*aOnDisable)()*/) {
 	setInterval(aInterval); 
 	iSetIterations = iIterations = aIterations;
 	iCallback = aCallback;
-	iOnEnable = aOnEnable;
-	iOnDisable = aOnDisable;
+	//iOnEnable = aOnEnable;
+	//iOnDisable = aOnDisable;
 }
 
 /** Sets number of iterations for the task
@@ -446,7 +446,7 @@ inline void Task::setIterations(long aIterations) {
 inline void Task::enable() {
 	if (iScheduler) { // activation without active scheduler does not make sense
 		iRunCounter = 0;
-		if ( iOnEnable && !iStatus.inonenable ) {
+		/*if ( iOnEnable && !iStatus.inonenable ) {
 			Task *current = iScheduler->iCurrent;
 			iScheduler->iCurrent = this;
 			iStatus.inonenable = true;		// Protection against potential infinite loop
@@ -454,7 +454,7 @@ inline void Task::enable() {
 			iStatus.inonenable = false;	  	// Protection against potential infinite loop
 			iScheduler->iCurrent = current;
 		}
-		else {
+		else */{
 			iStatus.enabled = true;
 		}
 		iPreviousMillis = _TASK_TIME_FUNCTION() - (iDelay = iInterval);
@@ -514,12 +514,14 @@ inline bool Task::disable() {
 	bool previousEnabled = iStatus.enabled;
 	iStatus.enabled = false;
 	iStatus.inonenable = false; 
+	/*
 	if (previousEnabled && iOnDisable) {
 		Task *current = iScheduler->iCurrent;
 		iScheduler->iCurrent = this;
 		(*iOnDisable)();
 		iScheduler->iCurrent = current;
 	}
+	*/
 	return (previousEnabled);
 }
 
