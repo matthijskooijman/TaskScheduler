@@ -279,6 +279,7 @@ class Scheduler {
 	public:
 		Scheduler();
 		void init();
+		bool isTaskAdded(Task& aTask);
 		void addTask(Task& aTask);
 		void deleteTask(Task& aTask);
 		void disableAll(bool aRecursive = true);
@@ -560,6 +561,14 @@ inline void Scheduler::init() {
 #ifdef _TASK_SLEEP_ON_IDLE_RUN
 	allowSleep(true);
 #endif  // _TASK_SLEEP_ON_IDLE_RUN
+}
+
+/** Check if task aTask has been added to the execution chain.
+ * Returns a boolean true to indicate that the task is in the chain.
+ * @param &aTask - reference to the Task to be checked.
+ */
+inline bool Scheduler::isTaskAdded(Task& aTask) {
+	return &aTask == iFirst || aTask.iPrev != NULL;
 }
 
 /** Appends task aTask to the tail of the execution chain.
