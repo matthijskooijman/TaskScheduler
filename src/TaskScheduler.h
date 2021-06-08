@@ -576,6 +576,8 @@ inline bool Scheduler::isTaskAdded(Task& aTask) {
  * @note Task can only be part of the chain once.
  */
 inline void Scheduler::addTask(Task& aTask) {
+	if (isTaskAdded(aTask))
+		return;
 
 	aTask.iScheduler = this;
 // First task situation: 
@@ -597,6 +599,9 @@ inline void Scheduler::addTask(Task& aTask) {
  * @param &aTask - reference to the task to be deleted from the chain
  */
 inline void Scheduler::deleteTask(Task& aTask) {
+	if (!isTaskAdded(aTask))
+		return;
+
 	if (aTask.iPrev == NULL) {
 		if (aTask.iNext == NULL) {
 			iFirst = NULL;
